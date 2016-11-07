@@ -1,44 +1,45 @@
 class Discount
-  #attr_writer :eligible
   attr_reader :code
 
+  # Initializes a new Discount object.
+  #
+  # @param [String] code - discount code that is applied to items
   def initialize(code)
     @code = code
-    #@eligible = true
   end
 
+  # Fetches the discount proc to be run in checkout.rb.
+  #
   def get_discount_logic
-    self.class.discounts[self.code]#.call(self, items)
+    self.class.discounts[self.code]
   end
 
-  # def eligible?
-  #   @eligible
-  # end
+  private
 
-
-
-  # Hash of procs that contains the code necessary to apply discounts to items.
+  # Hash of procs that contains the code necessary to apply discounts to items. Procs take both the Discount object and
+  # array of items as arguments. Meant to be run at "checkout" in checkout.rb.
+  #
   def self.discounts
     {
       # Buy-One-Get-One-Free Special on Coffee. (Unlimited)
       'BOGO' => -> (discount, items) do
-        conditions_met = false
-
         # Get all coffees with no applied discounts
-        items.select { |i| i.product_code == 'CF1' && i.discount_code.nil? && i.discount_price.zero? }.each do |item|
+        coffees = items.select { |i| i.product_code == 'CF1' && i.discount_code.nil? && i.discount_price.zero? }
 
-          # If we already have 1 coffee, then apply discount to the current one
-          if conditions_met
-            item.discount_code = discount.code
-            item.discount_price = item.price
+        # If we have exactly 2 with no discounts, apply the discount
+        if coffees.size == 2
+          c1, c2 = coffees
 
-            conditions_met = false
-          else
-            conditions_met = true
-          end
+          c1.discount_code = discount.code
+          c2.discount_code = discount.code
+
+          # Apply the discount price only to the one that will be free
+          c2.discount_price = c2.price
+
+          true
+        else
+          false
         end
-
-        true
       end,
 
       # If you buy 3 or more bags of Apples, the price drops to $4.50.
@@ -72,10 +73,7 @@ class Discount
         else
           false
         end
-
-        #discount.eligible = false
       end
     }
   end
-
 end
