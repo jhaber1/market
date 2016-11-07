@@ -17,7 +17,7 @@ class Checkout
   # Adds a new item to the cart and outputs the updated cart.
   #
   # @param [Item] item
-  # @return prints cart to STDOUT
+  # @return prints cart to stdout
   def scan(item)
     self.cart << item.clone
     check_for_discounts if @discounts.any?
@@ -41,10 +41,11 @@ class Checkout
     data = self.class.table_header
 
     self.cart.each do |item|
+      # Item price row
       data = data + ["#{item.product_code}".ljust(COL_WIDTH), self.class.blank_col,
                      "#{self.class.zero_pad(item.price)}".rjust(COL_WIDTH)]
 
-
+      # Discount row if present
       if !item.discount_code.nil? && !item.discount_price.zero?
         data = data + [self.class.blank_col, item.discount_code.center(COL_WIDTH),
                        "-#{self.class.zero_pad(item.discount_price)}".rjust(COL_WIDTH)]
@@ -64,7 +65,6 @@ class Checkout
   def check_for_discounts
     # Select all still-eligible discounts
     discounts.reject { |d| self.ineligible_discounts.include?(d.code) }.each do |discount|
-
       # Fetch its proc and run it against the cart
       discount_proc = discount.get_discount_logic
 
@@ -77,9 +77,7 @@ class Checkout
       if applied && discount.code == 'CHMK'
         self.ineligible_discounts << discount.code if !self.ineligible_discounts.include?(discount.code)
       end
-
     end
-
   end
 
   # Resets Checkout object to its original state.

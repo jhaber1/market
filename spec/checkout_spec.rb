@@ -75,6 +75,5 @@ describe 'Checkout' do
       end
       expect(co.total).to eql(10.97)
     end
-
   end
 end
